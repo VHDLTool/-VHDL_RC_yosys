@@ -34,7 +34,7 @@ puts "evaluating STD_05200 Rule for signal : $SigToAnalyze"
 
 #select logical cone for output signal 
 yosys select $SigToAnalyze %cie*
-puts "STD_05200> yosys select $SigToAnalyze %cie*"
+puts "STD_05200> select $SigToAnalyze %cie*"
 
 #save stat for this selection
 set StatResult [capture_stdout "stat"]
@@ -65,8 +65,18 @@ foreach ListElmt $SplitStatResult {
    }
 }
 
+set POSPATTERN "pos"
+set posnum 0
+foreach ListElmt $SplitStatResult {
+   if {[string first $POSPATTERN $ListElmt]!= -1} {
+      puts "STD_05200>found pos pattern: $ListElmt"
+      #split by space
+      set SplitCellField [regexp -all -inline {\S+} $ListElmt ]
+      set posnum [expr [lindex $SplitCellField 1]]
+   }
+}
 
-if {[expr $cellnum - $bufnum] !=0} {
+if {[expr $cellnum - $bufnum -$posnum] !=0} {
    puts "STD_05200> VIOLATION on $SigToAnalyze"
 }
 
