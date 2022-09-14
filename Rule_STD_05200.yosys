@@ -1,0 +1,74 @@
+#evaluate rule STD_05200 for one signal passed as parameter
+#execute in yosys with yosys> Rule_STD_05200.yosys MysignalNameToAnalyze
+#example : yosys> tcl ../Rule_STD_05200.yosys I2C_slave/o_vz
+
+#https://github.com/YosysHQ/yosys/issues/2980
+proc capture_stdout {args} {    
+    #open a tmpfile.
+    set temp [exec mktemp]
+    
+    #Run the yosys command
+    yosys tee -o $temp {*}$args
+
+    #read the temp file
+    set response [open $temp r]
+    set retval [read $response]
+    close $response
+    
+    #Cleanup
+    file delete $temp
+
+    #return what we read
+    return $retval
+}
+
+puts "argument count: $argc"
+puts "argument 0: [lindex $argv 0]"
+puts "script name: $argv0"
+
+#evaluate arguments
+set SigToAnalyze [lindex $argv 0]
+
+#display banner
+puts "evaluating STD_05200 Rule for signal : $SigToAnalyze"
+
+#select logical cone for output signal 
+yosys select $SigToAnalyze %cie*
+puts "STD_05200> yosys select $SigToAnalyze %cie*"
+
+#save stat for this selection
+set StatResult [capture_stdout "stat"]
+
+#split the result table  by line
+set SplitStatResult [split $StatResult \n]
+
+#search "Number of cells:" line to extract vallue
+set CELLPATTERN "Number of cells:"
+foreach ListElmt $SplitStatResult {
+   if {[string first $CELLPATTERN $ListElmt]!= -1} {
+      puts "STD_05200>found cell pattern: $ListElmt"
+      #remove space
+      set CellField [string map {" " ""} $ListElmt];
+      set SplitCellField [split $CellField :]
+      set cellnum [expr [lindex $SplitCellField 1]]
+   }
+}
+
+set BUFPATTERN "BUF"
+set bufnum 0
+foreach ListElmt $SplitStatResult {
+   if {[string first $BUFPATTERN $ListElmt]!= -1} {
+      puts "STD_05200>found BUF pattern: $ListElmt"
+      #split by space
+      set SplitCellField [regexp -all -inline {\S+} $ListElmt ]
+      set bufnum [expr [lindex $SplitCellField 1]]
+   }
+}
+
+
+if {[expr $cellnum - $bufnum] !=0} {
+   puts "STD_05200> VIOLATION on $SigToAnalyze"
+}
+
+#clear select
+yosys select -clear
