@@ -27,8 +27,8 @@ set SigToAnalyze [lindex $argv 0]
 #display banner
 puts "$RULEID> Evaluating $RULEID Rule for signal : $SigToAnalyze"
 
-#get clocks list
-puts "$RULEID> [Get_Clocks]"
+#select first
+
 
 #clear select
 yosys select -clear

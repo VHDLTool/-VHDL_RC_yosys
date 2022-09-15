@@ -1,21 +1,25 @@
 #use yosys> script list aliasname
 #for example : yosys> script list clocks
 
+#avoid problem in verific for wide mux and aldff 
+#this lead to FSM not being discovered
+verific_init:
+verific -cfg db_infer_wide_muxes_post_elaboration 0
+
 clocks:
-select t:* %x:+[CLK] t:* %d -list
-select t:* %x:+[C] t:* %d -list
+    select t:* %x:+[CLK] t:* %d -list
+    select t:* %x:+[C] t:* %d -list
 
 input:
-select i:* -list
+    select i:* -list
 
 output:
-select o:* -list
+    select o:* -list
 
+#get FSM
+#this sequence works with verific and GHDL
 fsm:
-verific -cfg db_infer_wide_muxes_post_elaboration 0
-verific -vhdl I2C_slave.vhd 
-hierarchy -top I2C_slave 
-proc I2C_slave 
-opt -nodffe -nosdff 
-opt_dff
-fsm_detect
+    proc 
+    bmuxmap  
+    opt -nodffe -nosdff
+    fsm_detect

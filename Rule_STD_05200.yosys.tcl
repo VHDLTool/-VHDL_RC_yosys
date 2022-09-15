@@ -35,27 +35,9 @@ puts "$RULEID> yosys> Select $SigToAnalyze %cie*"
 puts "$RULEID> yosys> stat"
 set StatResult [capture_stdout "stat"]
 
+set combnum [Get_Comb_cells $StatResult $RULEID]
 
-#split the result table  by line
-set SplitStatResult [split $StatResult \n]
-
-#search cells numbers in stat
-set cellnum [Get_Yosys_Table_value $SplitStatResult $CELLPATTERN ":" $RULEID]
-puts "$RULEID> Found $cellnum cells"
-
-#search buf numbers in stat
-set bufnum [Get_Yosys_Table_value $SplitStatResult $BUFPATTERN " " $RULEID]
-puts "$RULEID> Found $bufnum buffers cells"
-
-#search pos numbers in stat
-set posnum [Get_Yosys_Table_value $SplitStatResult $POSPATTERN " " $RULEID]
-puts "$RULEID> Found $posnum pos cells"
-
-#combinatorial cell evaluation
-set combnum [expr $cellnum - $bufnum -$posnum]
-puts "$RULEID> Found $combnum combinatorial cells"
-
-if {$combnum !=0} {
+if {$combnum != 0} {
    puts "$RULEID> VIOLATION on $SigToAnalyze"
 }
 
