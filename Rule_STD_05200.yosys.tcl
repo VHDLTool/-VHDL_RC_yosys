@@ -4,24 +4,15 @@
 
 ############SCRIPT CONSTANTS#############
 #name of the file including yosys general function
-set PACKAGENAME Package.yosys
+set PACKAGENAME Package.yosys.tcl
 
 #reference of the Rule analyzed
 set RULEID STD_05200
 
-#pattern to find cells in yosys stat command
-set CELLPATTERN "Number of cells:"
-
-#pattern to find buffers cells in yosys stat command
-set BUFPATTERN "BUF"
-
-#pattern to find pos cells in yosys stat command
-set POSPATTERN "pos"
 #########################################
 
 #get the path of every yosys scripts and use it for package openning
 set PackNameAndPath [file dirname [info script]]/$PACKAGENAME
-puts $PackNameAndPath
 
 #get general package functions
 source $PackNameAndPath
@@ -34,14 +25,16 @@ puts "script name: $argv0"
 set SigToAnalyze [lindex $argv 0]
 
 #display banner
-puts "evaluating $RULEID Rule for signal : $SigToAnalyze"
+puts "$RULEID> Evaluating $RULEID Rule for signal : $SigToAnalyze"
 
 #select logical cone for output signal 
 yosys select $SigToAnalyze %cie*
-puts "$RULEID> select $SigToAnalyze %cie*"
+puts "$RULEID> yosys> Select $SigToAnalyze %cie*"
 
 #save stat for this selection
+puts "$RULEID> yosys> stat"
 set StatResult [capture_stdout "stat"]
+
 
 #split the result table  by line
 set SplitStatResult [split $StatResult \n]

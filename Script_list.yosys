@@ -10,3 +10,12 @@ select i:* -list
 
 output:
 select o:* -list
+
+fsm:
+verific -cfg db_infer_wide_muxes_post_elaboration 0
+verific -vhdl I2C_slave.vhd 
+hierarchy -top I2C_slave 
+proc I2C_slave 
+opt -nodffe -nosdff 
+opt_dff
+fsm_detect
