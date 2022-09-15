@@ -1,0 +1,58 @@
+#This function capture output from Yosys in a temp file
+#and expose the content to TCL
+#https://github.com/YosysHQ/yosys/issues/2980
+proc capture_stdout {args} {    
+    #open a tmpfile.
+    set temp [exec mktemp]
+    
+    #Run the yosys command
+    yosys tee -o $temp {*}$args
+
+    #read the temp file
+    set response [open $temp r]
+    set retval [read $response]
+    close $response
+    
+    #Cleanup
+    file delete $temp
+
+    #return what we read
+    return $retval
+}
+
+
+#This function get the value from a table
+# the search is made by Line 
+# first we look for a pattern
+# then we get the value after the table separator
+proc Get_Yosys_Table_value {TextList TextPattern TextSeparator RuleId} {
+
+set ResValue 0
+
+foreach ListElmt $TextList {
+   if {[string first $TextPattern $ListElmt]!= -1} {
+      puts "$RuleId> Found pattern: $ListElmt"
+
+      #separator for table is space
+      switch $TextSeparator {
+
+         ":" { #separator is :
+            #remove space seprator
+            set CellField [string map {" " ""} $ListElmt];
+            #split by :
+            set SplitCellField [split $CellField :]
+            set ResValuePat [expr [lindex $SplitCellField 1]]
+         }
+
+         " " {#separator is space
+            #split by space
+            set SplitCellField [regexp -all -inline {\S+} $ListElmt ]
+            set ResValuePat [expr [lindex $SplitCellField 1]]
+         }
+      }
+      # add result to previous one (in case of multiple pattern hits)
+      set ResValue [expr {$ResValue + $ResValuePat}]
+   }
+}
+return $ResValue
+}

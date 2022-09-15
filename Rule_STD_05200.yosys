@@ -2,25 +2,29 @@
 #execute in yosys with yosys> Rule_STD_05200.yosys MysignalNameToAnalyze
 #example : yosys> tcl ../Rule_STD_05200.yosys I2C_slave/o_vz
 
-#https://github.com/YosysHQ/yosys/issues/2980
-proc capture_stdout {args} {    
-    #open a tmpfile.
-    set temp [exec mktemp]
-    
-    #Run the yosys command
-    yosys tee -o $temp {*}$args
+############SCRIPT CONSTANTS#############
+#name of the file including yosys general function
+set PACKAGENAME Package.yosys
 
-    #read the temp file
-    set response [open $temp r]
-    set retval [read $response]
-    close $response
-    
-    #Cleanup
-    file delete $temp
+#reference of the Rule analyzed
+set RULEID STD_05200
 
-    #return what we read
-    return $retval
-}
+#pattern to find cells in yosys stat command
+set CELLPATTERN "Number of cells:"
+
+#pattern to find buffers cells in yosys stat command
+set BUFPATTERN "BUF"
+
+#pattern to find pos cells in yosys stat command
+set POSPATTERN "pos"
+#########################################
+
+#get the path of every yosys scripts and use it for package openning
+set PackNameAndPath [file dirname [info script]]/$PACKAGENAME
+puts $PackNameAndPath
+
+#get general package functions
+source $PackNameAndPath
 
 puts "argument count: $argc"
 puts "argument 0: [lindex $argv 0]"
@@ -30,11 +34,11 @@ puts "script name: $argv0"
 set SigToAnalyze [lindex $argv 0]
 
 #display banner
-puts "evaluating STD_05200 Rule for signal : $SigToAnalyze"
+puts "evaluating $RULEID Rule for signal : $SigToAnalyze"
 
 #select logical cone for output signal 
 yosys select $SigToAnalyze %cie*
-puts "STD_05200> select $SigToAnalyze %cie*"
+puts "$RULEID> select $SigToAnalyze %cie*"
 
 #save stat for this selection
 set StatResult [capture_stdout "stat"]
@@ -42,42 +46,24 @@ set StatResult [capture_stdout "stat"]
 #split the result table  by line
 set SplitStatResult [split $StatResult \n]
 
-#search "Number of cells:" line to extract vallue
-set CELLPATTERN "Number of cells:"
-foreach ListElmt $SplitStatResult {
-   if {[string first $CELLPATTERN $ListElmt]!= -1} {
-      puts "STD_05200>found cell pattern: $ListElmt"
-      #remove space
-      set CellField [string map {" " ""} $ListElmt];
-      set SplitCellField [split $CellField :]
-      set cellnum [expr [lindex $SplitCellField 1]]
-   }
-}
+#search cells numbers in stat
+set cellnum [Get_Yosys_Table_value $SplitStatResult $CELLPATTERN ":" $RULEID]
+puts "$RULEID> Found $cellnum cells"
 
-set BUFPATTERN "BUF"
-set bufnum 0
-foreach ListElmt $SplitStatResult {
-   if {[string first $BUFPATTERN $ListElmt]!= -1} {
-      puts "STD_05200>found BUF pattern: $ListElmt"
-      #split by space
-      set SplitCellField [regexp -all -inline {\S+} $ListElmt ]
-      set bufnum [expr [lindex $SplitCellField 1]]
-   }
-}
+#search buf numbers in stat
+set bufnum [Get_Yosys_Table_value $SplitStatResult $BUFPATTERN " " $RULEID]
+puts "$RULEID> Found $bufnum buffers cells"
 
-set POSPATTERN "pos"
-set posnum 0
-foreach ListElmt $SplitStatResult {
-   if {[string first $POSPATTERN $ListElmt]!= -1} {
-      puts "STD_05200>found pos pattern: $ListElmt"
-      #split by space
-      set SplitCellField [regexp -all -inline {\S+} $ListElmt ]
-      set posnum [expr [lindex $SplitCellField 1]]
-   }
-}
+#search pos numbers in stat
+set posnum [Get_Yosys_Table_value $SplitStatResult $POSPATTERN " " $RULEID]
+puts "$RULEID> Found $posnum pos cells"
 
-if {[expr $cellnum - $bufnum -$posnum] !=0} {
-   puts "STD_05200> VIOLATION on $SigToAnalyze"
+#combinatorial cell evaluation
+set combnum [expr $cellnum - $bufnum -$posnum]
+puts "$RULEID> Found $combnum combinatorial cells"
+
+if {$combnum !=0} {
+   puts "$RULEID> VIOLATION on $SigToAnalyze"
 }
 
 #clear select
