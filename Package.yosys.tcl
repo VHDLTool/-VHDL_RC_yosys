@@ -13,6 +13,10 @@ set BUFPATTERN "BUF"
 
 #pattern to find pos cells in yosys stat command
 set POSPATTERN "pos"
+
+#pattern to find flipflops in stat commands
+set FFPATTERN "ff"
+
 ################################################
 
 
@@ -56,7 +60,7 @@ set ResValue 0
 
 foreach ListElmt $TextList {
    if {[string first $TextPattern $ListElmt]!= -1} {
-      puts "$RuleId> Found pattern: $ListElmt"
+      #puts "$RuleId> Found pattern: $ListElmt"
 
       #separator for table is space
       switch $TextSeparator {
@@ -88,6 +92,7 @@ proc Get_Comb_cells {StatResult RuleId} {
    global CELLPATTERN
    global BUFPATTERN
    global POSPATTERN
+   global FFPATTERN
 #split the result table  by line
 set SplitStatResult [split $StatResult \n]
 
@@ -103,8 +108,12 @@ puts "$RuleId> Found $bufnum buffers cells"
 set posnum [Get_Yosys_Table_value $SplitStatResult $POSPATTERN " " $RuleId]
 puts "$RuleId> Found $posnum pos cells"
 
+#search flipflop  numbers in stat
+set ffnum [Get_Yosys_Table_value $SplitStatResult $FFPATTERN " " $RuleId]
+puts "$RuleId> Found $ffnum flipflops "
+
 #combinatorial cell evaluation
-set combnum [expr $cellnum - $bufnum -$posnum]
+set combnum [expr $cellnum - $bufnum -$posnum -$ffnum]
 puts "$RuleId> Found $combnum combinatorial cells"
 
 return [expr $combnum]
