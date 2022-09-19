@@ -192,10 +192,10 @@ proc Get_statemachines {} {
    #execute cmd script fsm
    set yosyscmd "script $YOSYSSCRIPTNAMEPATH fsm"
    eval capture_stdout $yosyscmd
+   puts "FSM>yosys> script $YOSYSSCRIPTNAMEPATH fsm"
 
    #get log about FSM
    set FsmResult [capture_stdout "fsm_detect"]
-   puts $FsmResult
 
    #split result by line
    set SplitFsmResult [split $FsmResult \n]
@@ -206,7 +206,7 @@ proc Get_statemachines {} {
    foreach FsmElmt $SplitFsmResult {
       if {[string first "Not marking " $FsmElmt]!= -1} {
          #found state machine ignored
-         puts "RULE> Found \" $FsmElmt\""
+         puts "FSM> Found \" $FsmElmt\""
 
          #split by space and get the 3rd word
          set SMName [split $FsmElmt " "]
@@ -217,14 +217,15 @@ proc Get_statemachines {} {
 
          #force FSM encoding
          yosys "setattr" "-set" "fsm_encoding" "\"auto\"" $SMName
-         puts "RULE>yosys> setattr -set fsm_encoding \"auto\" $SMName"
+         puts "FSM>yosys> setattr -set fsm_encoding \"auto\" $SMName"
       }
    }
 
    #extract FSM
    set FsmResult [capture_stdout "fsm_extract"]
+   puts "FSM>yosys> fsm_extract"
 
-   #csplit by line
+   #split by line
    set SplitFsmResult [split $FsmResult \n]
 
    #search for state machine names and path
@@ -241,7 +242,7 @@ proc Get_statemachines {} {
          #this is the beginning of a state machine log block 
          #check if current fsm is empty (otherwise save it)
          if { [llength $CurrentFSM] != 0} {
-            puts "RULE> Found State machine [lindex $CurrentFSM 0] in module [lindex $CurrentFSM 1] from file UNKNOWN"   
+            puts "FSM> Warning: Found State machine [lindex $CurrentFSM 0] in module [lindex $CurrentFSM 1] from file UNKNOWN"   
             lappend ListFSM $CurrentFSM
 
             #reset current fsm
@@ -249,7 +250,7 @@ proc Get_statemachines {} {
          }
 
 
-         puts "RULE> Found \" $FsmElmt\""
+         puts "FSM> Found \" $FsmElmt\""
          #yosys log file mix ` and ' replace `
          set FsmElmt [string map {`\\ '} $FsmElmt]
 
@@ -269,13 +270,15 @@ proc Get_statemachines {} {
       #
       if {[string first "for state register: " $FsmElmt]!= -1} {
          #found state machine log
-         puts "RULE> Found \"$FsmElmt\""
+         puts "FSM> Found \"$FsmElmt\""
          #split by space and get the last word
          set SMName [split $FsmElmt " "]
          set SMName [lindex $SMName end]
 
          #check if parser is verific
          if {[string first "\$verific\$" $FsmElmt]!= -1} {
+            puts "FSM> Verific Parser Detected"
+            
             #split by :
             set FsmElmt [split $FsmElmt ":"]
 
@@ -288,25 +291,27 @@ proc Get_statemachines {} {
             #get the last 2 elements 
             set FsmElmt [lindex $FsmElmt end-1].[lindex $FsmElmt end]
 
-            #add to result liste
-            lappend CurrentFSM $FsmElmt
+            #add to result list
+            lappend CurrentFSM .$FsmElmt
 
             #add discovered state machines
-            if { [llength $CurrentFSM] == 3} {
-               puts "RULE> Found State machine [lindex $CurrentFSM 0] in module [lindex $CurrentFSM 1] from file [lindex $CurrentFSM 2]"   
+            if { [llength $CurrentFSM] == 3} { 
                lappend ListFSM $CurrentFSM
 
                #reset current fsm
                set CurrentFSM {}
             }
          }
+         #### TODO add else if parser is ghdl
+
+
       }
    }
 
    #save last current (in case filename not found)
             #check if current fsm is empty (otherwise save it)
    if { [llength $CurrentFSM] != 0} {
-      puts "RULE> Found State machine [lindex $CurrentFSM 0] in module [lindex $CurrentFSM 1] from file UNKNOWN"   
+      puts "FSM>Warning : Found State machine [lindex $CurrentFSM 0] in module [lindex $CurrentFSM 1] from file UNKNOWN"   
       lappend ListFSM $CurrentFSM
 
       #reset current fsm

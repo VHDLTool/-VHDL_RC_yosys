@@ -24,7 +24,13 @@ puts "script name: $argv0"
 
 #display banner
 puts "$RULEID> Evaluating $RULEID Rule"
-Get_statemachines
+#get state machine info
+#it return a list of ( list of state machine name , module patch , file) 
+set SMlist [Get_statemachines]
+
+foreach ListElmt $SMlist {
+    puts "RULE_FSM> Found State machine [lindex $ListElmt 0] in module [lindex $ListElmt 1] from file [lindex $ListElmt 2]"   
+}
 
 
 #clear select

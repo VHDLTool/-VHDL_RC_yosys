@@ -1,0 +1,14 @@
+script ../Script_list.yosys verific_init
+read -vhdl ./mealy_4s.vhd 
+read -vhdl ./mealy_4s_badname.vhd 
+read -vhdl ./mealy_4s_std.vhd 
+read -vhdl ./moore_4s_badname.vhdl 
+read -vhdl ./moore_4s.vhdl 
+read -vhdl ./safe_state_badname.vhd 
+read -vhdl ./safe_state.vhd 
+read -vhdl ./user_encod_badname.vhd 
+read -vhdl ./user_encod.vhd 
+read -vhdl ./top.vhd 
+
+hierarchy -top top
+tcl ../Rule_List_FSM.tcl
