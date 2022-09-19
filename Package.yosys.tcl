@@ -49,7 +49,6 @@ proc capture_stdout {args} {
     return $retval
 }
 
-
 #This function get the value from a table
 # the search is made by Line 
 # first we look for a pattern
@@ -85,7 +84,7 @@ foreach ListElmt $TextList {
 }
 return $ResValue
 }
-
+########################################################################################
 
 ##this function calculate the number of combinatorial elements in a stat log
 proc Get_Comb_cells {StatResult RuleId} {
@@ -120,7 +119,7 @@ return [expr $combnum]
 }
 
 #this function return the list of clock in the current module selection
-## FIXME be careful that for now Yosys script for clock call 2 times stat
+## FIXME be careful that for now Yosys script for clock call 2 times stat looking for two differents way of signaling clocks
 ## the yosys script should be modified to make only one call to stat (so use stack to store select results)
 proc Get_Clocks {} {
   global YOSYSSCRIPTNAMEPATH
@@ -183,4 +182,135 @@ proc Get_inputs {} {
 
   #remove header line -- Executing script file `../Script_list.yosys' --
   return [lrange $Listcleaned 1 end]
+}
+
+
+#this function return the list of state machine in the design
+proc Get_statemachines {} {
+   global YOSYSSCRIPTNAMEPATH
+
+   #execute cmd script fsm
+   set yosyscmd "script $YOSYSSCRIPTNAMEPATH fsm"
+   eval capture_stdout $yosyscmd
+
+   #get log about FSM
+   set FsmResult [capture_stdout "fsm_detect"]
+   puts $FsmResult
+
+   #split result by line
+   set SplitFsmResult [split $FsmResult \n]
+
+   #look for ignored FSM
+   #example line
+   #             Not marking mealy_4s.sm_state_mealy as FSM state register: 
+   foreach FsmElmt $SplitFsmResult {
+      if {[string first "Not marking " $FsmElmt]!= -1} {
+         #found state machine ignored
+         puts "RULE> Found \" $FsmElmt\""
+
+         #split by space and get the 3rd word
+         set SMName [split $FsmElmt " "]
+         set SMName [lindex $SMName 2]
+
+         #Change . extender to / (recognized by yosys)
+         set SMName [string map {. /} $SMName]
+
+         #force FSM encoding
+         yosys "setattr" "-set" "fsm_encoding" "\"auto\"" $SMName
+         puts "RULE>yosys> setattr -set fsm_encoding \"auto\" $SMName"
+      }
+   }
+
+   #extract FSM
+   set FsmResult [capture_stdout "fsm_extract"]
+
+   #csplit by line
+   set SplitFsmResult [split $FsmResult \n]
+
+   #search for state machine names and path
+   #in this search FSM extraction log comes just before state register filename
+   set ListFSM {} 
+   set CurrentFSM {}
+   foreach FsmElmt $SplitFsmResult {
+      #search for state machine name and module
+      #example line : 
+      #                 Extracting FSM `\sm_state_mealy' from module `\mealy_4s'.
+      #
+      if {[string first "Extracting FSM " $FsmElmt]!= -1} {
+
+         #this is the beginning of a state machine log block 
+         #check if current fsm is empty (otherwise save it)
+         if { [llength $CurrentFSM] != 0} {
+            puts "RULE> Found State machine [lindex $CurrentFSM 0] in module [lindex $CurrentFSM 1] from file UNKNOWN"   
+            lappend ListFSM $CurrentFSM
+
+            #reset current fsm
+            set CurrentFSM {}
+         }
+
+
+         puts "RULE> Found \" $FsmElmt\""
+         #yosys log file mix ` and ' replace `
+         set FsmElmt [string map {`\\ '} $FsmElmt]
+
+         #split by '
+         set SMName [split $FsmElmt "'"]
+         #get 2nd and 4th element
+         set StateMachineName [lindex $SMName 1]
+         set StateMachineModule [lindex $SMName 3]
+         lappend CurrentFSM $StateMachineName $StateMachineModule    
+      }
+
+      #search for file name 
+      #example line (from verific):
+      #                  found $adff cell for state register: $verific$sm_state_mealy_reg$./FSM/mealy_4s.vhd:65$25  
+      #example line from GHDL
+      #                 
+      #
+      if {[string first "for state register: " $FsmElmt]!= -1} {
+         #found state machine log
+         puts "RULE> Found \"$FsmElmt\""
+         #split by space and get the last word
+         set SMName [split $FsmElmt " "]
+         set SMName [lindex $SMName end]
+
+         #check if parser is verific
+         if {[string first "\$verific\$" $FsmElmt]!= -1} {
+            #split by :
+            set FsmElmt [split $FsmElmt ":"]
+
+            #take the one before end element
+            set FsmElmt [lindex $FsmElmt end-1]
+
+            #split by .
+            set FsmElmt [split $FsmElmt "."]
+
+            #get the last 2 elements 
+            set FsmElmt [lindex $FsmElmt end-1].[lindex $FsmElmt end]
+
+            #add to result liste
+            lappend CurrentFSM $FsmElmt
+
+            #add discovered state machines
+            if { [llength $CurrentFSM] == 3} {
+               puts "RULE> Found State machine [lindex $CurrentFSM 0] in module [lindex $CurrentFSM 1] from file [lindex $CurrentFSM 2]"   
+               lappend ListFSM $CurrentFSM
+
+               #reset current fsm
+               set CurrentFSM {}
+            }
+         }
+      }
+   }
+
+   #save last current (in case filename not found)
+            #check if current fsm is empty (otherwise save it)
+   if { [llength $CurrentFSM] != 0} {
+      puts "RULE> Found State machine [lindex $CurrentFSM 0] in module [lindex $CurrentFSM 1] from file UNKNOWN"   
+      lappend ListFSM $CurrentFSM
+
+      #reset current fsm
+      set CurrentFSM {}
+   }
+   return $ListFSM
 }

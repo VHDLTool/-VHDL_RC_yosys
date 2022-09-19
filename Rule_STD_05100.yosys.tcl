@@ -57,7 +57,7 @@ if {$combnum !=0} {
 
       #construct command to get the name of the next stage flipflops and apply logical cone on them
       set yosyscmd "$yosyscmd t:*ff* %i %co$CONEDEPTH"
-      puts "$RULEID> yosys>Stage $$stagenum> select $yosyscmd"
+      puts "$RULEID> yosys>Stage $$stagenum> $yosyscmd"
       eval "yosys $yosyscmd"
 
       #search for combinatorial
