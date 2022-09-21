@@ -10,7 +10,7 @@ This is still a work in progress algorithm might change.
 Script use example can be found in the TESTS folder. For example (when using tabbycad-yosys with verific):
 1.  go to `./TESTS/FSM/I2c/` 
 2. launch yosys
-3. execute `tcl I2C_slave.yoys`   
+3. execute `script I2C_slave.yoys`   
 
 When using ghdl :
 1.  go to `./TESTS/FSM/I2c/` 
