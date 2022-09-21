@@ -1,22 +1,41 @@
-#use yosys> script list aliasname
-#for example : yosys> script list clocks
+#-------------------------------------------------------------------------------------------------
+#-- Company   : CNES
+#-- Author    : Florent Manni (CNES)
+#-- Copyright : Copyright (c) CNES. 
+#-- Licensing : GNU GPLv3
+#-------------------------------------------------------------------------------------------------
+#-- Version         : V1
+#-- Version history : 
+#--    V1 : 2022-09-21 : Florent Manni (CNES): Creation
+#-------------------------------------------------------------------------------------------------
+#-- Description : collection of raw yosys useful scripts
+#--
+#-- Execution  : execute in yosys (after design elaboration) with 
+#--              yosys> script Script_list <aliasname>
+#--
+#--
+#-- Limitations : 
+#-------------------------------------------------------------------------------------------------
 
 #avoid problem in verific for wide mux and aldff 
 #this lead to FSM not being discovered
 verific_init:
 verific -cfg db_infer_wide_muxes_post_elaboration 0
 
+#list all clocks which are every signals connected to a component pin CLK or C
 clocks:
     select t:* %x:+[CLK] t:* %d -list
     select t:* %x:+[C] t:* %d -list
 
+#list all input signal of the currently selected module
 input:
     select i:* -list
 
+#list all output signal of the currently selected module
 output:
     select o:* -list
 
-#get FSM
+#step to make yosys detect FSM
 #this sequence works with verific and GHDL
 fsm:
     proc 

@@ -1,4 +1,0 @@
-v 4
-file . "../I2C_slave.vhd" "b2178118ef75494ecbeda729a0962f34718a9cb8" "20220914142656.378":
-  entity i2c_slave at 23( 1247) + 0 on 15;
-  architecture behavioral of i2c_slave at 44( 2192) + 0 on 16;

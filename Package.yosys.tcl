@@ -1,3 +1,21 @@
+#-------------------------------------------------------------------------------------------------
+#-- Company   : CNES
+#-- Author    : Florent Manni (CNES)
+#-- Copyright : Copyright (c) CNES. 
+#-- Licensing : GNU GPLv3
+#-------------------------------------------------------------------------------------------------
+#-- Version         : V1
+#-- Version history : 
+#--    V1 : 2022-09-21 : Florent Manni (CNES): Creation
+#-------------------------------------------------------------------------------------------------
+#-- Description : Main global function used by rule verification
+#--               this package is not meant to be used directly from yosys 
+#--
+#-- Limitations : there is no dedicated namespace for these elements therefore is is shared with 
+#--               Yosys TCL  env
+#--
+#-------------------------------------------------------------------------------------------------
+
 ##########Global definitions#######################
 #script file location
 set PACKAGEPATH [file dirname  [info script]]
@@ -16,7 +34,6 @@ set POSPATTERN "pos"
 
 #pattern to find flipflops in stat commands
 set FFPATTERN "ff"
-
 ################################################
 
 
@@ -26,6 +43,8 @@ set YOSYSSCRIPTNAMEPATH $PACKAGEPATH/$YOSYSSCRIPTNAME
 
 ##################################################
 
+
+#############yosys data management ######################################
 
 #This function capture output from Yosys in a temp file
 #and expose the content to TCL
@@ -61,10 +80,12 @@ foreach ListElmt $TextList {
    if {[string first $TextPattern $ListElmt]!= -1} {
       #puts "$RuleId> Found pattern: $ListElmt"
 
-      #separator for table is space
+      #identify separator
       switch $TextSeparator {
+         
+         ":" { 
+         #separator is :
 
-         ":" { #separator is :
             #remove space seprator
             set CellField [string map {" " ""} $ListElmt];
             #split by :
@@ -72,7 +93,9 @@ foreach ListElmt $TextList {
             set ResValuePat [expr [lindex $SplitCellField 1]]
          }
 
-         " " {#separator is space
+        
+         " " {
+         #separator is space
             #split by space
             set SplitCellField [regexp -all -inline {\S+} $ListElmt ]
             set ResValuePat [expr [lindex $SplitCellField 1]]
@@ -85,6 +108,8 @@ foreach ListElmt $TextList {
 return $ResValue
 }
 ########################################################################################
+
+###################Yosys digital electronics oriented fucntions#########################
 
 ##this function calculate the number of combinatorial elements in a stat log
 proc Get_Comb_cells {StatResult RuleId} {
@@ -281,18 +306,22 @@ proc Get_statemachines {} {
             
             #split by :
             set FsmElmt [split $FsmElmt ":"]
+            puts $FsmElmt
 
             #take the one before end element
             set FsmElmt [lindex $FsmElmt end-1]
+            puts $FsmElmt
 
-            #split by .
-            set FsmElmt [split $FsmElmt "."]
+            #split by $
+            set FsmElmt [split $FsmElmt "$"]
+            puts $FsmElmt
 
-            #get the last 2 elements 
-            set FsmElmt [lindex $FsmElmt end-1].[lindex $FsmElmt end]
+            #get the last 1 elements
+            set FsmElmt [lindex $FsmElmt end]
+            puts $FsmElmt
 
             #add to result list
-            lappend CurrentFSM .$FsmElmt
+            lappend CurrentFSM $FsmElmt
 
             #add discovered state machines
             if { [llength $CurrentFSM] == 3} { 
@@ -303,7 +332,8 @@ proc Get_statemachines {} {
             }
          }
          #### TODO add else if parser is ghdl
-
+         #for now GHDL lost the possibility to identify filename
+         # instead there is an ID which is not useable without ghdl library
 
       }
    }
@@ -319,3 +349,4 @@ proc Get_statemachines {} {
    }
    return $ListFSM
 }
+########################################################################################

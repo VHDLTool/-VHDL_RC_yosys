@@ -1,0 +1,5 @@
+#example script for yosys using verific
+script ../../../Script_list.yosys verific_init
+read -vhdl  I2C_slave.vhd
+hierarchy -top I2C_slave
+tcl ../../../Rule_FSM.yosys.tcl

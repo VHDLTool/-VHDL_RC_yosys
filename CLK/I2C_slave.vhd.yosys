@@ -1,4 +1,0 @@
-read -vhdl I2C_slave.vhd
-hierarchy -top I2C_slave
-
-

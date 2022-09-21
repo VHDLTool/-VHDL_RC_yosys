@@ -595,7 +595,7 @@ begin
     
     sda_master_ack <= dir_sda when b_sda = '0' else '1';
 
-	 sda_stop <= dir_sda when b_sda = '0' else '1';
+	 sda_stop <= dir_sda when b_sda = '0' else sda_stop;
 	
 	 i_scl_int <= '0' when i_scl = '0' else '1';
                 	

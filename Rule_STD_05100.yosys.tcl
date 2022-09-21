@@ -1,6 +1,28 @@
-#evaluate rule STD_05100 for one signal passed as parameter
-#execute in yosys with yosys> Rule_STD_05100.yosys MysignalNameToAnalyze flipflop stages
-#example : yosys> tcl ../Rule_STD_05100.yosys I2C_slave/i_vz 2
+
+#-------------------------------------------------------------------------------------------------
+#-- Company   : CNES
+#-- Author    : Florent Manni (CNES)
+#-- Copyright : Copyright (c) CNES. 
+#-- Licensing : GNU GPLv3
+#-------------------------------------------------------------------------------------------------
+#-- Version         : V1
+#-- Version history : 
+#--    V1 : 2022-09-21 : Florent Manni (CNES): Creation
+#-------------------------------------------------------------------------------------------------
+#-- Description : evaluate rule "STD_05100:Metastability management" for one signal input passed as parameter
+#--
+#-- Execution  : execute in yosys (after design elaboration) with 
+#--              yosys> Rule_STD_05100.yosys <MysignalNameToAnalyze> <flipflop stages to analyze>
+#--
+#-- Limitations : the way the Package.yosys.tcl script path is namaged should be improved
+#--               This script do soe synthesys pass , therefore the design is altered, it is adviced
+#--               To reload the project from the ground to avoid strange behavior due to synthesis.
+#--
+#--               depending on CONEDEPTH the combinatorial path can include several layer of flipflop
+#--               Which is not wanted and should be corrected
+#--
+#--               There is no check made to verify if signal exists or is really an input
+#-------------------------------------------------------------------------------------------------
 
 ############SCRIPT CONSTANTS#############
 #name of the file including yosys general function
@@ -9,19 +31,19 @@ set PACKAGENAME Package.yosys.tcl
 #reference of the Rule analyzed
 set RULEID STD_05100
 
-#set depth of logicil cone for input
+#set depth of logical cone for input
 set CONEDEPTH 5
 #########################################
 
 #get the path of every yosys scripts and use it for package openning
 set PackNameAndPath [file dirname [info script]]/$PACKAGENAME
-
 #get general package functions
 source $PackNameAndPath
 
-puts "argument count: $argc"
-puts "argument 0: [lindex $argv 0]"
-puts "script name: $argv0"
+#debug
+#puts "argument count: $argc"
+#puts "argument 0: [lindex $argv 0]"
+#puts "script name: $argv0"
 
 #evaluate arguments
 set SigToAnalyze [lindex $argv 0]
@@ -34,7 +56,7 @@ puts "$RULEID> Evaluating $RULEID Rule for flipflop stages : $FfStages"
 #select first level of logical cone
 puts "$RULEID> FF Stage 1"
 
-# create "select mySig %co " pour avoir le cone combinatoire vers le registre
+# create "select mySig %co " to get the combinatorial cone to the register
 set yosyscmd "select $SigToAnalyze %co$CONEDEPTH"
 eval "yosys $yosyscmd"
 puts "$RULEID> yosys>Stage 1> $yosyscmd"
@@ -69,11 +91,8 @@ if {$combnum !=0} {
          puts "$RULEID>Stage $stagenum> VIOLATION on $SigToAnalyze"
          break
       }
-
    }
 }
-
-
 
 #clear select
 yosys select -clear

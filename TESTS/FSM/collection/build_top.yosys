@@ -1,4 +1,5 @@
-script ../Script_list.yosys verific_init
+#example script for yosys using verific
+script ../../../Script_list.yosys verific_init
 read -vhdl ./mealy_4s.vhd 
 read -vhdl ./mealy_4s_badname.vhd 
 read -vhdl ./mealy_4s_std.vhd 
@@ -11,4 +12,4 @@ read -vhdl ./user_encod.vhd
 read -vhdl ./top.vhd 
 
 hierarchy -top top
-tcl ../Rule_List_FSM.tcl
+tcl ../../../Rule_FSM.yosys.tcl
