@@ -1,19 +1,19 @@
 #-------------------------------------------------------------------------------------------------
 #-- Company   : CNES
 #-- Author    : Florent Manni (CNES)
-#-- Copyright : Copyright (c) CNES. 
+#-- Copyright : Copyright (c) CNES.
 #-- Licensing : GNU GPLv3
 #-------------------------------------------------------------------------------------------------
 #-- Version         : V1
-#-- Version history : 
+#-- Version history :
 #--    V1 : 2022-09-21 : Florent Manni (CNES): Creation
 #-------------------------------------------------------------------------------------------------
-#-- Description : This is not a direct rule but a main algorithm used by other rules. 
+#-- Description : This is not a direct rule but a main algorithm used by other rules.
 #--               It look for all FSM in the elaborated design
 #--               It return a list of FSMs exposed as a list including:
 #--                        - state machine signal name
 #--                        - state machine module instanciation name
-#--                        - name of the file including the state machine 
+#--                        - name of the file including the state machine
 #--
 #-- Execution  : execute in yosys (after elaboration of a design) with yosys>tcl Rule_FSM.tcl
 #--
@@ -46,11 +46,11 @@ source $PackNameAndPath
 #display banner
 puts "$RULEID> Evaluating $RULEID Rule"
 #get state machine info
-#it return a list of ( list of state machine name , module patch , file) 
+#it return a list of ( list of state machine name , module patch , file)
 set SMlist [Get_statemachines]
 
 foreach ListElmt $SMlist {
-    puts "RULE_FSM> Found State machine [lindex $ListElmt 0] in module [lindex $ListElmt 1] from file [lindex $ListElmt 2]"   
+    puts "RULE_FSM> Found State machine [lindex $ListElmt 0] in module [lindex $ListElmt 1] from file [lindex $ListElmt 2]"
 }
 
 #clear selection

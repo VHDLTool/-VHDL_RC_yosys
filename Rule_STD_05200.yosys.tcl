@@ -2,16 +2,16 @@
 #-------------------------------------------------------------------------------------------------
 #-- Company   : CNES
 #-- Author    : Florent Manni (CNES)
-#-- Copyright : Copyright (c) CNES. 
+#-- Copyright : Copyright (c) CNES.
 #-- Licensing : GNU GPLv3
 #-------------------------------------------------------------------------------------------------
 #-- Version         : V1
-#-- Version history : 
+#-- Version history :
 #--    V1 : 2022-09-21 : Florent Manni (CNES): Creation
 #-------------------------------------------------------------------------------------------------
 #-- Description : evaluate rule "STD_05200:Output signal registration" for one signal output passed as parameter
 #--
-#-- Execution  : execute in yosys (after design elaboration) with 
+#-- Execution  : execute in yosys (after design elaboration) with
 #--              yosys> STD_05200.yosys <MysignalNameToAnalyze>
 #--
 #-- Limitations : the way the Package.yosys.tcl script path is namaged should be improved
@@ -45,7 +45,7 @@ set SigToAnalyze [lindex $argv 0]
 #display banner
 puts "$RULEID> Evaluating $RULEID Rule for signal : $SigToAnalyze"
 
-#select logical cone for output signal 
+#select logical cone for output signal
 yosys select $SigToAnalyze %cie*
 puts "$RULEID> yosys> Select $SigToAnalyze %cie*"
 
@@ -56,7 +56,8 @@ set StatResult [capture_stdout "stat"]
 set combnum [Get_Comb_cells $StatResult $RULEID]
 
 if {$combnum != 0} {
-   puts "$RULEID> VIOLATION on $SigToAnalyze"
+
+    puts "$RULEID> VIOLATION on $SigToAnalyze"
 }
 
 #clear select
