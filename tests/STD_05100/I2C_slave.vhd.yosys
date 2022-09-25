@@ -3,7 +3,7 @@
 
 read -vhdl I2C_slave.vhd
 hierarchy -top I2C_slave
-script ../../Script_list.yosys input
+script ../../scripts/Script_list.yosys input
 tcl ../../Rule_STD_05100.yosys.tcl I2C_slave/i_slave_addr
 
 
