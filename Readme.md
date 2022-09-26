@@ -6,7 +6,7 @@ These scripts should work with verilog also even it they are not tested.
 
 This is still a work in progress algorithm might change.
 
-# Example
+## Example
 Script use example can be found in the TESTS folder. For example (when using tabbycad-yosys with verific):
 1.  go to `./TESTS/FSM/I2c/` 
 2. launch yosys

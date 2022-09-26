@@ -2,16 +2,16 @@
 #-------------------------------------------------------------------------------------------------
 #-- Company   : CNES
 #-- Author    : Florent Manni (CNES)
-#-- Copyright : Copyright (c) CNES. 
+#-- Copyright : Copyright (c) CNES.
 #-- Licensing : GNU GPLv3
 #-------------------------------------------------------------------------------------------------
 #-- Version         : V1
-#-- Version history : 
+#-- Version history :
 #--    V1 : 2022-09-21 : Florent Manni (CNES): Creation
 #-------------------------------------------------------------------------------------------------
 #-- Description : evaluate rule "STD_05100:Metastability management" for one signal input passed as parameter
 #--
-#-- Execution  : execute in yosys (after design elaboration) with 
+#-- Execution  : execute in yosys (after design elaboration) with
 #--              yosys> Rule_STD_05100.yosys <MysignalNameToAnalyze> <flipflop stages to analyze>
 #--
 #-- Limitations : the way the Package.yosys.tcl script path is namaged should be improved
@@ -67,31 +67,31 @@ set combnum [Get_Comb_cells $StatResult $RULEID]
 
 
 if {$combnum !=0} {
-   puts "$RULEID>Stage 1> VIOLATION on $SigToAnalyze "
+    puts "$RULEID>Stage 1> VIOLATION on $SigToAnalyze "
 } else {
-#evaluate next level of input 
-#start at 1 because stage 1 was already done
-   for {set i 1} {$i <$FfStages} {incr i} {
-      #clear selection
-      yosys select -clear
-      set stagenum [expr $i + 1]
-      puts "$RULEID> FF Stage $stagenum"
+    #evaluate next level of input
+    #start at 1 because stage 1 was already done
+    for {set i 1} {$i <$FfStages} {incr i} {
+        #clear selection
+        yosys select -clear
+        set stagenum [expr $i + 1]
+        puts "$RULEID> FF Stage $stagenum"
 
-      #construct command to get the name of the next stage flipflops and apply logical cone on them
-      set yosyscmd "$yosyscmd t:*ff* %i %co$CONEDEPTH"
-      puts "$RULEID> yosys>Stage $$stagenum> $yosyscmd"
-      eval "yosys $yosyscmd"
+        #construct command to get the name of the next stage flipflops and apply logical cone on them
+        set yosyscmd "$yosyscmd t:*ff* %i %co$CONEDEPTH"
+        puts "$RULEID> yosys>Stage $$stagenum> $yosyscmd"
+        eval "yosys $yosyscmd"
 
-      #search for combinatorial
-      set StatResult [capture_stdout "stat"]
-      set combnum [Get_Comb_cells $StatResult $RULEID]
+        #search for combinatorial
+        set StatResult [capture_stdout "stat"]
+        set combnum [Get_Comb_cells $StatResult $RULEID]
 
-      if {$combnum !=0} {
-         #found combinatorial => exit
-         puts "$RULEID>Stage $stagenum> VIOLATION on $SigToAnalyze"
-         break
-      }
-   }
+        if {$combnum !=0} {
+            #found combinatorial => exit
+            puts "$RULEID>Stage $stagenum> VIOLATION on $SigToAnalyze"
+            break
+        }
+    }
 }
 
 #clear select
