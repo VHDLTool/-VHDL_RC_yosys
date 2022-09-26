@@ -22,4 +22,8 @@ When using ghdl :
 -  `tcl ../../../Rule_FSM.yosys.tcl`
 
 ## License
-The scripts are published under the GNU GPLv3 license, available in the LICENSE file.
+The scripts are published under the GNU GPLv3 license, available in the [LICENSE](LICENSE) file.
+
+## Main Contributors
+* Florent Manni ([LeFl0w](https://github.com/LeFl0w)), [CNES](https://cnes.fr/)
+* David Racodon ([racodond](https://github.com/racodond)), [Linty Services](https://www.linty-services.com/)
